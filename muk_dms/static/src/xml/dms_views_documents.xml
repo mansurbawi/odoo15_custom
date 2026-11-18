@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates xml:space="preserve">
+
+    <t t-name="muk_dms.DocumentsClientAction" owl="1">
+        <div class="o_content o_dms_documents_action">
+            <div class="o_control_panel">
+                <div class="o_cp_top">
+                    <div class="o_cp_top_left">
+                        <ol class="breadcrumb">
+                            <li class="active">Documents</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="o_cp_bottom">
+                    <div class="o_cp_bottom_left">
+                        <div class="o_cp_buttons">
+                            <div class="o_list_buttons">
+                                <button class="btn btn-sm btn-primary" type="button"
+                                        t-on-click="open" t-att-disabled="!canOpen">
+                                    Open
+                                </button>
+                                <button class="btn btn-sm btn-secondary" type="button"
+                                        t-on-click="edit" t-att-disabled="!canEdit">
+                                    Edit
+                                </button>
+                                <button class="btn btn-sm btn-secondary" type="button"
+                                        t-on-click="createDirectory" t-att-disabled="!canCreate">
+                                    Create Directory
+                                </button>
+                                <button class="btn btn-sm btn-secondary" type="button"
+                                        t-on-click="createFile" t-att-disabled="!canCreate">
+                                    Create File
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="o_cp_bottom_right">
+                        <div class="o_searchview">
+                            <input class="o_searchview_input" type="text" placeholder="Search..."
+                                   t-ref="search" t-on-keyup="onSearch"/>
+                        </div>
+                        <div class="btn-group btn-group-sm ms-2">
+                            <button class="btn btn-secondary fa fa-refresh" type="button"
+                                    title="Refresh" t-on-click="refresh"/>
+                            <button t-attf-class="btn btn-secondary fa fa-file-o{{ state.showPreview ? ' active' : '' }}"
+                                    type="button" title="Show preview" t-on-click="showPreview"/>
+                            <button t-attf-class="btn btn-secondary fa fa-ban{{ state.showPreview ? '' : ' active' }}"
+                                    type="button" title="Hide preview" t-on-click="hidePreview"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="o_content">
+                <div class="o_view_manager_content">
+                    <div class="oe_document_content">
+                        <div class="container-fluid oe_document_container">
+                            <div class="row oe_document_row">
+                                <div t-attf-class="oe_document_col oe_document_col_tree{{ state.showPreview ? '' : ' oe_document_col_tree_full' }}">
+                                    <div class="oe_document_tree" t-ref="tree"/>
+                                </div>
+                                <div class="oe_document_col oe_document_col_preview" t-if="state.showPreview">
+                                    <div class="oe_document_preview">
+                                        <div t-if="state.preview">
+                                            <div class="o_dms_preview_title" t-esc="state.preview.name"/>
+                                            <img t-if="state.preview.type === 'image'"
+                                                 class="img-fluid" t-att-src="state.preview.url"/>
+                                            <iframe t-if="state.preview.type === 'pdf'"
+                                                    t-att-src="state.preview.url"
+                                                    class="o_dms_preview_pdf"/>
+                                            <div t-if="state.preview.type === 'other'"
+                                                 class="text-muted p-3">No preview available.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>
