@@ -105,8 +105,12 @@ class RefreshRule(models.Model):
         return super(RefreshRule, self).unlink()
 
     def _make_create(self):
-        def create_refresh(self, vals, **kwargs):
-            result = create_refresh.origin(self, vals, **kwargs)
+        # Odoo 15: _patch_method/api.propagate only copies `_returns`, so the
+        # api decorator must be applied explicitly, otherwise `create` called
+        # over RPC (web client) is dispatched as a record method and fails.
+        @api.model_create_multi
+        def create_refresh(self, vals_list, **kwargs):
+            result = create_refresh.origin(self, vals_list, **kwargs)
             self.env['bus.bus']._sendone(
                 "%s_refresh" % self.env.cr.dbname, 'refresh', self._name)
             return result

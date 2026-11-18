@@ -22,6 +22,7 @@
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import dmsUtils from "muk_dms.utils";
+import core from "web.core";
 
 const { Component, hooks } = owl;
 const { onMounted, onWillUnmount, useRef, useState } = hooks;
@@ -40,8 +41,22 @@ export class DocumentsClientAction extends Component {
             preview: null,
         });
         this._searchTimer = null;
-        onMounted(() => this._mountTree());
-        onWillUnmount(() => this._destroyTree());
+        onMounted(() => {
+            this._mountTree();
+            // auto refresh (muk_web_client_refresh): reload the tree when
+            // files / directories are changed by anybody
+            core.bus.on("muk_refresh", this, this._onMukRefresh);
+        });
+        onWillUnmount(() => {
+            core.bus.off("muk_refresh", this, this._onMukRefresh);
+            this._destroyTree();
+        });
+    }
+
+    _onMukRefresh(model) {
+        if (model === FILE_MODEL || model === DIRECTORY_MODEL) {
+            this.refresh();
+        }
     }
 
     get canOpen() {
@@ -384,14 +399,34 @@ export class DocumentsClientAction extends Component {
     }
 
     async refresh() {
-        const data = await this._loadTreeData();
-        if (!this.treeRef.el) {
+        // Serialize refreshes: several notifications (file + directory) can
+        // arrive at once; running jstree.refresh() in parallel loses the
+        // opened/selected state.
+        if (this._refreshing) {
+            this._refreshAgain = true;
             return;
         }
-        const instance = $(this.treeRef.el).jstree(true);
-        if (instance) {
-            instance.settings.core.data = data;
-            instance.refresh();
+        this._refreshing = true;
+        try {
+            do {
+                this._refreshAgain = false;
+                const data = await this._loadTreeData();
+                if (!this.treeRef.el) {
+                    return;
+                }
+                const instance = $(this.treeRef.el).jstree(true);
+                if (instance) {
+                    const state = instance.get_state();
+                    instance.settings.core.data = data;
+                    await new Promise((resolve) => {
+                        $(this.treeRef.el).one("refresh.jstree", () => resolve());
+                        setTimeout(resolve, 5000); // never block further refreshes
+                        instance.refresh(false, () => state);
+                    });
+                }
+            } while (this._refreshAgain);
+        } finally {
+            this._refreshing = false;
         }
     }
 

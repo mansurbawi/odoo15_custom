@@ -1,3 +1,5 @@
+/** @odoo-module **/
+
 /**********************************************************************************
  * 
  *    Copyright (C) 2017 MuK IT GmbH
@@ -17,9 +19,65 @@
  *
  **********************************************************************************/
 
-odoo.define('muk_web_client.channel', function (require) {
-    "use strict";
-    // Bus-based channel support removed in Odoo 15 (web.WebClient / bus.bus gone).
-    // Auto-refresh via bus is intentionally disabled; keep module loadable.
-    return {};
-});
+// Odoo 15 port: small wrapper around the (legacy) bus_service.
+//
+//   const mukBus = env.services.muk_bus;
+//   mukBus.addChannel("my_channel");          // server: bus._sendone("my_channel", "my_type", payload)
+//   mukBus.on("my_type", (payload) => {...});
+
+import { registry } from "@web/core/registry";
+
+export const mukBusService = {
+    start(env) {
+        const handlers = {};
+        const channels = new Set();
+        let busService = null;
+
+        function dispatch(notifications) {
+            for (const { type, payload } of notifications) {
+                for (const handler of handlers[type] || []) {
+                    try {
+                        handler(payload);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            }
+        }
+
+        env.bus.on("WEB_CLIENT_READY", null, () => {
+            busService = owl.Component.env.services.bus_service;
+            if (!busService) {
+                return;
+            }
+            busService.onNotification(this, dispatch);
+            for (const channel of channels) {
+                busService.addChannel(channel);
+            }
+            busService.startPolling();
+        });
+
+        return {
+            addChannel(channel) {
+                channels.add(channel);
+                if (busService) {
+                    busService.addChannel(channel);
+                }
+            },
+            deleteChannel(channel) {
+                channels.delete(channel);
+                if (busService) {
+                    busService.deleteChannel(channel);
+                }
+            },
+            on(type, handler) {
+                (handlers[type] = handlers[type] || []).push(handler);
+            },
+            off(type, handler) {
+                handlers[type] = (handlers[type] || []).filter((h) => h !== handler);
+            },
+        };
+    },
+};
+
+registry.category("services").add("muk_bus", mukBusService);

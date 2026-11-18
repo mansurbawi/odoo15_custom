@@ -1,3 +1,5 @@
+/** @odoo-module **/
+
 /**********************************************************************************
  * 
  *    Copyright (C) 2017 MuK IT GmbH
@@ -17,8 +19,30 @@
  *
  **********************************************************************************/
 
-odoo.define('muk_web_client_refresh.channel', function (require) {
-    "use strict";
-    // Bus-based channel support removed in Odoo 15; intentionally disabled.
-    return {};
-});
+// Odoo 15 port: listen to "<db>_refresh" bus notifications (sent by the
+// refresh rules, see models/refresh_rule.py) and broadcast them on
+// core.bus as "muk_refresh" (payload = model name). Views listening to it
+// reload themselves (see client_refresh_views.js).
+
+import { registry } from "@web/core/registry";
+import { session } from "@web/session";
+import core from "web.core";
+
+const DEBOUNCE = 500;
+
+export const mukRefreshService = {
+    dependencies: ["muk_bus"],
+    start(env, { muk_bus }) {
+        const timers = {};
+        muk_bus.addChannel(`${session.db}_refresh`);
+        muk_bus.on("refresh", (model) => {
+            if (!model) {
+                return;
+            }
+            clearTimeout(timers[model]);
+            timers[model] = setTimeout(() => core.bus.trigger("muk_refresh", model), DEBOUNCE);
+        });
+    },
+};
+
+registry.category("services").add("muk_refresh", mukRefreshService);

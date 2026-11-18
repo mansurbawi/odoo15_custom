@@ -27,7 +27,7 @@
         By sending a message to this channel, the
         corresponding view is reloaded.
     """,
-    "version": "15.0.1.0.0",
+    "version": "15.0.1.1.0",
     "category": "Extra Tools",
     "license": "AGPL-3",
     "website": "http://www.mukit.at",
@@ -46,6 +46,7 @@
     "assets": {
         "web.assets_backend": [
             "muk_web_client_refresh/static/src/js/client_refresh.js",
+            "muk_web_client_refresh/static/src/js/client_refresh_views.js",
         ],
     },
     "images": [

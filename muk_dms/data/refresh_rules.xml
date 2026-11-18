@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Auto refresh (muk_web_client_refresh) for the DMS models.
+     Can be changed / removed in Settings > Technical > Auto Refresh > Rules. -->
+<odoo noupdate="1">
+
+	<record id="refresh_rule_file" model="muk_web_client_refresh.rule">
+		<field name="name">Documents: Files</field>
+		<field name="model" ref="muk_dms.model_muk_dms_file"/>
+	</record>
+
+	<record id="refresh_rule_directory" model="muk_web_client_refresh.rule">
+		<field name="name">Documents: Directories</field>
+		<field name="model" ref="muk_dms.model_muk_dms_directory"/>
+	</record>
+
+</odoo>
