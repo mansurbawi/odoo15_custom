@@ -33,19 +33,53 @@
 	padding: 0 !important;
 }
 
+.o_dms_documents_action .oe_document_row {
+	flex-wrap: nowrap;
+	margin: 0;
+}
+
 .o_dms_documents_action .oe_document_col_tree {
-	width: 60%;
+	flex: 0 0 60%;
+	max-width: 60%;
 	overflow: auto;
 }
 
 .o_dms_documents_action .oe_document_col_tree_full {
-	width: 100%;
+	flex: 1 1 100%;
+	max-width: 100%;
 }
 
 .o_dms_documents_action .oe_document_col_preview {
-	width: 40%;
+	flex: 1 1 0;
+	min-width: 0;
 	overflow: auto;
-	border-left: 1px solid #dee2e6;
+}
+
+// draggable divider between the tree and the preview
+.o_dms_documents_action .o_dms_splitter {
+	flex: 0 0 6px;
+	cursor: col-resize;
+	background: #dee2e6;
+	touch-action: none;
+	transition: background 0.15s;
+
+	&:hover {
+		background: $o-brand-primary;
+	}
+}
+
+.o_dms_documents_action .o_dms_dragging {
+	cursor: col-resize;
+	user-select: none;
+
+	.o_dms_splitter {
+		background: $o-brand-primary;
+	}
+
+	// iframes (pdf.js) would swallow the mouse events while dragging
+	iframe {
+		pointer-events: none;
+	}
 }
 
 .o_dms_preview_title {

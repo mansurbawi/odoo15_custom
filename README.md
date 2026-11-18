@@ -4,7 +4,7 @@ Custom addons for **Odoo 15** (Community).
 
 | Module | Version | Description |
 |---|---|---|
-| `muk_dms` | 15.0.1.3.0 | Document Management System (directories, files, locks, Documents tree view, kanban/list/form widgets) |
+| `muk_dms` | 15.0.1.3.1 | Document Management System (directories, files, locks, Documents tree view, kanban/list/form widgets) |
 | `muk_web_preview` | 15.0.1.0.0 | File preview dialog (PDF via Odoo's pdf.js, OpenDocument via ViewerJS, images, text) |
 | `muk_web_client` | 15.0.1.1.0 | `muk_bus` web service: subscribe to bus channels / notification types |
 | `muk_web_client_refresh` | 15.0.1.1.0 | Auto refresh of views when records change (rules per model) |
@@ -52,6 +52,8 @@ Then hard refresh the browser (Ctrl+Shift+R).
 
 - Users need the group **Documents / User** (or Manager / Administrator).
   The `admin` user gets *Documents / Administrator* automatically on install.
+- Documents view: drag the divider between the tree and the preview to resize
+  the panels (double-click resets to 60/40; the width is remembered per browser).
 - Preview: clicking a file name opens the preview; the download icon downloads.
   Add `options="{'no_preview': True}"` on a binary field to keep the standard behaviour.
 - Do not add a `download` parameter to `/web/content` preview URLs: Odoo 15

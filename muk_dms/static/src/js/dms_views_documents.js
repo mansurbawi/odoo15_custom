@@ -30,15 +30,29 @@ const { onMounted, onWillUnmount, useRef, useState } = hooks;
 const DIRECTORY_MODEL = "muk_dms.directory";
 const FILE_MODEL = "muk_dms.file";
 
+// resizable tree / preview panels (replaces the jquery-splitter of Odoo 10)
+const SPLIT_STORAGE_KEY = "muk_dms.documents.tree_width";
+const SPLIT_DEFAULT = 60;
+const SPLIT_MIN = 15;
+const SPLIT_MAX = 85;
+
+function loadTreeWidth() {
+    const value = parseFloat(window.localStorage.getItem(SPLIT_STORAGE_KEY));
+    return value >= SPLIT_MIN && value <= SPLIT_MAX ? value : SPLIT_DEFAULT;
+}
+
 export class DocumentsClientAction extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
         this.treeRef = useRef("tree");
+        this.rowRef = useRef("row");
         this.state = useState({
             selected: null,
             showPreview: true,
             preview: null,
+            treeWidth: loadTreeWidth(),
+            dragging: false,
         });
         this._searchTimer = null;
         onMounted(() => {
@@ -49,6 +63,7 @@ export class DocumentsClientAction extends Component {
         });
         onWillUnmount(() => {
             core.bus.off("muk_refresh", this, this._onMukRefresh);
+            this._stopSplitterDrag();
             this._destroyTree();
         });
     }
@@ -472,6 +487,52 @@ export class DocumentsClientAction extends Component {
             if (node && node.data) {
                 this._updatePreview(node.data);
             }
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    // Splitter (resize tree / preview)
+    //--------------------------------------------------------------------------
+
+    onSplitterDown(ev) {
+        if (ev.button !== undefined && ev.button !== 0) {
+            return;
+        }
+        ev.preventDefault();
+        this.state.dragging = true;
+        this._onSplitterMove = (moveEv) => {
+            const row = this.rowRef.el;
+            if (!row) {
+                return;
+            }
+            const rect = row.getBoundingClientRect();
+            let width = ((moveEv.clientX - rect.left) / rect.width) * 100;
+            width = Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, width));
+            this.state.treeWidth = Math.round(width * 10) / 10;
+        };
+        this._onSplitterUp = () => {
+            this._stopSplitterDrag();
+            window.localStorage.setItem(SPLIT_STORAGE_KEY, String(this.state.treeWidth));
+        };
+        window.addEventListener("pointermove", this._onSplitterMove);
+        window.addEventListener("pointerup", this._onSplitterUp);
+        window.addEventListener("pointercancel", this._onSplitterUp);
+    }
+
+    onSplitterReset() {
+        this.state.treeWidth = SPLIT_DEFAULT;
+        window.localStorage.setItem(SPLIT_STORAGE_KEY, String(SPLIT_DEFAULT));
+    }
+
+    _stopSplitterDrag() {
+        if (this._onSplitterMove) {
+            window.removeEventListener("pointermove", this._onSplitterMove);
+            window.removeEventListener("pointerup", this._onSplitterUp);
+            window.removeEventListener("pointercancel", this._onSplitterUp);
+            this._onSplitterMove = this._onSplitterUp = null;
+        }
+        if (this.state.dragging) {
+            this.state.dragging = false;
         }
     }
 

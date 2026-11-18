@@ -55,10 +55,15 @@
                 <div class="o_view_manager_content">
                     <div class="oe_document_content">
                         <div class="container-fluid oe_document_container">
-                            <div class="row oe_document_row">
-                                <div t-attf-class="oe_document_col oe_document_col_tree{{ state.showPreview ? '' : ' oe_document_col_tree_full' }}">
+                            <div t-attf-class="row oe_document_row{{ state.dragging ? ' o_dms_dragging' : '' }}" t-ref="row">
+                                <div t-attf-class="oe_document_col oe_document_col_tree{{ state.showPreview ? '' : ' oe_document_col_tree_full' }}"
+                                     t-att-style="state.showPreview ? 'flex: 0 0 ' + state.treeWidth + '%; max-width: ' + state.treeWidth + '%;' : ''">
                                     <div class="oe_document_tree" t-ref="tree"/>
                                 </div>
+                                <div class="o_dms_splitter" t-if="state.showPreview"
+                                     title="Drag to resize, double-click to reset"
+                                     t-on-pointerdown="onSplitterDown"
+                                     t-on-dblclick="onSplitterReset"/>
                                 <div class="oe_document_col oe_document_col_preview" t-if="state.showPreview">
                                     <div class="oe_document_preview">
                                         <div t-if="state.preview">
